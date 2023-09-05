@@ -30,7 +30,7 @@ public class PasswordValidatorTest {
 
 
     @ParameterizedTest
-    @ValueSource(strings = {"ciaomichiamonico", "Parabola", "Mipiaceilcioccolato"})
+    @ValueSource(strings = {"ciaomichiamonico", "Parabola1", "Mipiaceilcioccolato"})
     @DisplayName("Password Length Requirement Test")
     @Order(1)
     public void testPasswordLengthRequirement(String password) {
