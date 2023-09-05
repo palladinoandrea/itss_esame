@@ -35,18 +35,23 @@ public class PasswordValidatorPbtTest {
         boolean isValid = validator.validate(str);
 
         int plength = str.length();
-        int digit = 0;
 
-        for(int i = 0; i < plength; i++){
 
-            if(isDigit(str.charAt(i))){
-                digit++;
-            }
-        }
 
-        String lengt = plength >  10 ? "lunghezza < 10 " : "lunghezza > 10";
-        String digi = digit > 3 ? "Meno di 3 numeri" : "ALmeno 3 numeri";
-        Statistics.collect(lengt, digi);
+
+        String lengt = plength >  10 ? "lunghezza > 10 " : "lunghezza < 10";
+
+        String pass_number = requiresNum ? "Password con numero" : "Password senza numero";
+        String pass_special = requiresSpec ? "Password con carattere speciale" : "Password senza carattere speciale";
+
+
+
+        Statistics.collect(lengt);
+        Statistics.collect(pass_number);
+        Statistics.collect(pass_special);
+
+        //Statistics.collect(lengt, pass_number, pass_special);
+
 
         Assertions.assertThat(isValid).isTrue();
     }
