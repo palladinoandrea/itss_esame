@@ -34,23 +34,20 @@ public class PasswordValidatorPbtTest {
         PasswordValidator validator = new PasswordValidator(MIN_LENGTH, requiresNum, requiresSpec);
         boolean isValid = validator.validate(str);
 
-        int plength = str.length();
+
+        int p_length = str.length();
+
+        String pass_lengt = p_length >  10 ? "|Lunghezza > 10| " : "|Lunghezza < 10| ";
+        String pass_number = requiresNum ? "|Password con numero  | " : "|Password senza numero| ";
+        String pass_special = requiresSpec ? "|Password con carattere speciale  | " : "|Password senza carattere speciale| ";
 
 
 
+        Statistics.label("Lunghezza").collect(pass_lengt);
+        Statistics.label("Presenza del numero").collect(pass_number);
+        Statistics.label("Presenza del carattere speciale").collect(pass_special);
 
-        String lengt = plength >  10 ? "lunghezza > 10 " : "lunghezza < 10";
-
-        String pass_number = requiresNum ? "Password con numero" : "Password senza numero";
-        String pass_special = requiresSpec ? "Password con carattere speciale" : "Password senza carattere speciale";
-
-
-
-        Statistics.collect(lengt);
-        Statistics.collect(pass_number);
-        Statistics.collect(pass_special);
-
-        //Statistics.collect(lengt, pass_number, pass_special);
+        Statistics.label("Correlazioni lunghezza/numero/carattere speciale").collect(pass_lengt, pass_number, pass_special);
 
 
         Assertions.assertThat(isValid).isTrue();
@@ -153,19 +150,51 @@ public class PasswordValidatorPbtTest {
         PasswordValidator validator = new PasswordValidator(MIN_LENGTH, requiresNum, requiresSpec);
         boolean isValid = validator.validate(str);
 
-        int plength = str.length();
-        int digit = 0;
+        int p_length = str.length();
+        int flag_num = 0;
+        int flag_spec = 0;
+        int flag_lengt = 0;
 
-        for(int i = 0; i < plength; i++){
-
-            if(isDigit(str.charAt(i))){
-                digit++;
-            }
+        //IDENTIFICAZIONE CAUSA DEL FAIL
+        if ((requiresNum && !str.matches(".*\\d.*")) || (!requiresNum && str.matches(".*\\d.*"))) {
+            flag_num++;
+        }
+        if((requiresSpec && !str.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) ||
+                (!requiresSpec && str.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*"))) {
+            flag_spec++;
+        }
+        if(p_length < MIN_LENGTH){
+            flag_lengt++;
         }
 
-        String length = plength >  10 ? "lunghezza < 10 " : "lunghezza > 10";
-        String digi = digit > 3 ? "Meno di 3 numeri" : "ALmeno 3 numeri";
-        Statistics.collect(length, digi);
+        //STATISTICHE RELATIVE AI DATI GENERATI
+
+        //per una statistica attendibile sulla lunghezza , cambiare il valore numero in base alla lunghezza minima
+        //nel nostro caso 6
+        String pass_lengt = p_length >  MIN_LENGTH ? "|Lunghezza > 6| " : "|Lunghezza < 6| ";
+        String pass_number = requiresNum ? "|Password con numero  | " : "|Password senza numero| ";
+        String pass_special = requiresSpec ? "|Password con carattere speciale  | " : "|Password senza carattere speciale| ";
+
+        String fail_num = flag_num == 1 ?   "|Fail per numero|" : "|Altro|" ;
+        String fail_spec = flag_spec == 1 ? "|Fail per carattere speciale|" : "|Altro|";
+        String fail_lengt = flag_lengt == 1 ? "|Fail per lunghezza|" : "|Altro|";
+
+
+
+
+        Statistics.label("Lunghezza").collect(pass_lengt);
+        Statistics.label("Presenza del numero").collect(pass_number);
+        Statistics.label("Presenza del carattere speciale").collect(pass_special);
+
+        Statistics.label("Correlazioni lunghezza/numero/carattere speciale").collect(pass_lengt, pass_number, pass_special);
+
+        Statistics.label("Fail per numero").collect(fail_num);
+        Statistics.label("Fail per carattere speciale").collect(fail_spec);
+        Statistics.label("Fail per lunghezza").collect(fail_lengt);
+
+        Statistics.label("Motivi del fail").collect(fail_num, fail_spec, fail_lengt);
+
+
 
         Assertions.assertThat(isValid).isFalse();
     }
