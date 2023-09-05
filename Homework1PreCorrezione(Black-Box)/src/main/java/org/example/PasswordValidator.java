@@ -12,9 +12,8 @@ public class PasswordValidator {
     }
 
 
-
-
-
+    public PasswordValidator() {
+    }
 
     public boolean validate(String password) {
         if (password == null) {
@@ -25,12 +24,12 @@ public class PasswordValidator {
             return false;
         }
 
-        if ((requiresNumber && !password.matches(".*\\d.*")) || (!requiresNumber && password.matches(".*\\d.*"))) {
+        if ((requiresNumber && !password.matches(".*\\d.*")) | (!requiresNumber && password.matches(".*\\d.*"))) {
             return false;
         }
 
-        if ((requiresSpecialChar && !password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) ||
-                (!requiresSpecialChar && password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*"))) {
+        if ((requiresSpecialChar && !password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*"))
+                | (!requiresSpecialChar && password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*"))) {
             return false;
         }
 

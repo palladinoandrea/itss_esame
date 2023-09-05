@@ -38,7 +38,7 @@ public class OccorrenzeTest {
                 of("", "fame", 0),
                 of(null, "fame", 0),
 
-                of("La fame nel mond1 ha fame .", "fame", 2),
+                of("La fame nel mondo 1 ha fame .", "fame", 2),
                 of("La fame nel mondo ha fame .", "pane", 0)
 
 

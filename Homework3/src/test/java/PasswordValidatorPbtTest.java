@@ -16,111 +16,295 @@ public class PasswordValidatorPbtTest {
 
     int MIN_LENGTH = 6;
     int MAX_LENGTH = 20;
-    boolean requiresNumber = true;
-    boolean requiresSpecialChar = true;
+
 
 
     @Property
     @Report(Reporting.GENERATED)
     void validPasswordsAlwaysPass(
-            @ForAll("validPassword") String password
+            @ForAll("validPassword") Tuple.Tuple3< Boolean, Boolean, String > password
 
     ) {
 
+        boolean requiresNum = password.get1();
+        boolean requiresSpec = password.get2();
+        String str = password.get3();
 
-        PasswordValidator validator = new PasswordValidator(MIN_LENGTH, requiresNumber, requiresSpecialChar);
-        boolean isValid = validator.validate(password);
 
-        int length = password.length();
+        PasswordValidator validator = new PasswordValidator(MIN_LENGTH, requiresNum, requiresSpec);
+        boolean isValid = validator.validate(str);
+
+        int plength = str.length();
         int digit = 0;
 
-        for(int i = 0; i < length; i++){
+        for(int i = 0; i < plength; i++){
 
-            if(isDigit(password.charAt(i))){
+            if(isDigit(str.charAt(i))){
                 digit++;
             }
         }
 
-        String lengt = length >  10 ? "lunghezza < 10 " : "lunghezza > 10";
+        String lengt = plength >  10 ? "lunghezza < 10 " : "lunghezza > 10";
         String digi = digit > 3 ? "Meno di 3 numeri" : "ALmeno 3 numeri";
-        Statistics.collect(lengt, digit);
+        Statistics.collect(lengt, digi);
 
         Assertions.assertThat(isValid).isTrue();
     }
 
+
     @Provide
-    Arbitrary<String> validPassword() {
+    Arbitrary<Tuple.Tuple3<Boolean, Boolean, String>> validPassword() {
 
-        Arbitrary<String> pass = Arbitraries.strings().withCharRange('a', 'z')
-                .ofMinLength(MIN_LENGTH + 1).ofMaxLength(MAX_LENGTH);
 
-        Arbitrary<Integer> number = Arbitraries.integers().between(0, 9);
+        Arbitrary<Boolean> requiresNumArb = Arbitraries.of(true, false);
+        Arbitrary<Boolean> requiresSpecArb = Arbitraries.of(true, false);
 
-        Arbitrary<String> special = Arbitraries.strings().withChars("!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?")
-                .ofLength(1);
 
-        return Combinators.combine(pass, number, special)
-                .as((p, n, s) -> p + "" + n + "" + s);
+
+
+        return Combinators.combine(requiresNumArb,requiresSpecArb)
+                .as(Tuple::of)
+                .flatMap(tuple -> {
+
+
+                    boolean number_temp = tuple.get1();
+                    boolean special_temp = tuple.get2();
+
+                    Arbitrary<String> pass = Arbitraries.strings().withCharRange('a', 'z')
+                            .ofMinLength(MIN_LENGTH)
+                            .ofMaxLength(MAX_LENGTH);
+
+                    Arbitrary<Integer> number = Arbitraries.integers().between(0, 9);
+
+                    Arbitrary<String> special = Arbitraries.strings().withChars("!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?")
+                            .ofLength(1);
+
+
+                    //necessario sia numero che carattere speciale
+                    if(number_temp && special_temp){
+
+
+                        Arbitrary<String> str = Combinators.combine(pass, number, special)
+                                .as((p, n, s) -> p + "" + n + "" + s);
+
+                        return str
+                                .map(s -> Tuple.of(number_temp, special_temp, s ));
+
+
+
+                    }else if(number_temp){
+                        //necessario numero e non carattere speciale
+
+                        Arbitrary<String> str = Combinators.combine(pass, number)
+                                .as((p, n) -> p + "" + n);
+
+                        return str
+                                .map(s -> Tuple.of(number_temp, special_temp, s ));
+
+
+
+
+                    }else if(special_temp){
+                        //necessario carattere speciale e non il numero
+
+                        Arbitrary<String> str = Combinators.combine(pass, special)
+                                .as((p, s) -> p + "" + s);
+
+                        return str
+                                .map(s -> Tuple.of(number_temp, special_temp, s ));
+
+
+
+                    }else{
+                        //non deve esserci nè il numero e nè il carattere speciale
+
+                        return pass
+                                .map(s -> Tuple.of(number_temp, special_temp, s));
+
+
+                    }
+
+                });
 
     }
+
+
+
 
 
     @Property
     @Report(Reporting.GENERATED)
     void invalidPasswordsAlwaysFail(
-            @ForAll("invalidPasswords") String password
-    ) {
-        PasswordValidator validator = new PasswordValidator(MIN_LENGTH, requiresNumber, requiresSpecialChar);
-        boolean isValid = validator.validate(password);
+            @ForAll("invalidPassword") Tuple.Tuple3< Boolean, Boolean, String > password
 
-        int length = password.length();
+    ) {
+
+
+        boolean requiresNum = password.get1();
+        boolean requiresSpec = password.get2();
+        String str = password.get3();
+
+
+        PasswordValidator validator = new PasswordValidator(MIN_LENGTH, requiresNum, requiresSpec);
+        boolean isValid = validator.validate(str);
+
+        int plength = str.length();
         int digit = 0;
 
-        for(int i = 0; i < length; i++){
+        for(int i = 0; i < plength; i++){
 
-            if(isDigit(password.charAt(i))){
+            if(isDigit(str.charAt(i))){
                 digit++;
             }
         }
 
-        String lengt = length >  10 ? "lunghezza < 10 " : "lunghezza > 10";
+        String length = plength >  10 ? "lunghezza < 10 " : "lunghezza > 10";
         String digi = digit > 3 ? "Meno di 3 numeri" : "ALmeno 3 numeri";
-        Statistics.collect(lengt, digit);
+        Statistics.collect(length, digi);
 
         Assertions.assertThat(isValid).isFalse();
     }
 
 
     @Provide
-    Arbitrary<String> invalidPasswords() {
+    Arbitrary<Tuple.Tuple3<Boolean, Boolean, String>> invalidPassword() {
 
-        Arbitrary<String> pass = Arbitraries.strings().withCharRange('a', 'z')
-                .ofMinLength(1).ofMaxLength(MAX_LENGTH);
 
-        Arbitrary<String> special = Arbitraries.strings().withChars("!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?")
-                .ofLength(1);
+        Arbitrary<Boolean> requiresNumArb = Arbitraries.of(true, false);
+        Arbitrary<Boolean> requiresSpecArb = Arbitraries.of(true, false);
 
-        Arbitrary<Integer> number = Arbitraries.integers().between(0, 9);
 
-        Arbitrary<String> passSpecialCombo = Combinators.combine(pass, special)
-                .as((p, s) -> p + "" + s);
 
-        Arbitrary<String> passNumberCombo = Combinators.combine(pass, number)
-                .as((p, n) -> p + "" + n);
 
-        return Arbitraries.oneOf(pass, passNumberCombo, passSpecialCombo);
+        return Combinators.combine(requiresNumArb,requiresSpecArb)
+                .as(Tuple::of)
+                .flatMap(tuple -> {
+
+                    boolean number_temp = tuple.get1();
+                    boolean special_temp = tuple.get2();
+
+
+                    Arbitrary<Integer> number = Arbitraries.integers().between(0, 9);
+
+                    Arbitrary<String> special = Arbitraries.strings().withChars("!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?")
+                            .ofLength(1);
+
+
+                    //necessario sia numero che carattere speciale
+                    if(number_temp && special_temp){
+
+                        Arbitrary<String> pass = Arbitraries.strings().withCharRange('a', 'z')
+                                .ofMinLength(1)
+                                .ofMaxLength(MAX_LENGTH);
+
+                        Arbitrary<String> passFail = Arbitraries.strings().withCharRange('a', 'z')
+                                .ofMinLength(1)
+                                .ofMaxLength(MIN_LENGTH - 2);
+
+
+                        Arbitrary<String> str = Combinators.combine(pass, special)
+                                .as((p, s) -> p + "" + s);
+
+                        Arbitrary<String> str1 = Combinators.combine(pass, number)
+                                .as((p, n) -> p + "" + n);
+
+
+                        return Arbitraries.oneOf(passFail, str, str1, pass)
+                                .map(s -> Tuple.of(number_temp, special_temp, s ));
+
+
+                    }else if(number_temp){
+                        //necessario numero e non carattere speciale
+
+                        Arbitrary<String> pass = Arbitraries.strings().withCharRange('a', 'z')
+                                .ofMinLength(1)
+                                .ofMaxLength(MAX_LENGTH);
+
+                        Arbitrary<String> passFail = Arbitraries.strings().withCharRange('a', 'z')
+                                .ofMinLength(1)
+                                .ofMaxLength(MIN_LENGTH - 2);
+
+
+                        Arbitrary<String> str = Combinators.combine(pass, special)
+                                .as((p, s) -> p + "" + s);
+
+                        Arbitrary<String> str1 = Combinators.combine(passFail, number)
+                                .as((p, n) -> p + "" + n);
+
+                        return Arbitraries.oneOf(passFail, str, str1, pass)
+                                .map(s -> Tuple.of(number_temp, special_temp, s ));
+
+
+
+
+                    }else if(special_temp){
+                        //necessario carattere speciale e non il numero
+
+                        Arbitrary<String> pass = Arbitraries.strings().withCharRange('a', 'z')
+                                .ofMinLength(1)
+                                .ofMaxLength(MAX_LENGTH);
+
+                        Arbitrary<String> passFail = Arbitraries.strings().withCharRange('a', 'z')
+                                .ofMinLength(1)
+                                .ofMaxLength(MIN_LENGTH - 2);
+
+                        Arbitrary<String> str = Combinators.combine(passFail, special)
+                                .as((p, s) -> p + "" + s);
+
+                        Arbitrary<String> str1 = Combinators.combine(pass, number)
+                                .as((p, n) -> p + "" + n);
+
+                        return Arbitraries.oneOf(passFail, str, str1, pass)
+                                .map(s -> Tuple.of(number_temp, special_temp, s ));
+
+
+
+                    }else{
+                        //non deve esserci nè il numero e nè il carattere speciale
+
+                        Arbitrary<String> pass = Arbitraries.strings().withCharRange('a', 'z')
+                                .ofMinLength(1)
+                                .ofMaxLength(MAX_LENGTH);
+
+                        Arbitrary<String> passFail = Arbitraries.strings().withCharRange('a', 'z')
+                                .ofMinLength(1)
+                                .ofMaxLength(MIN_LENGTH - 2);
+
+                        Arbitrary<String> str = Combinators.combine(pass, special)
+                                .as((p, s) -> p + "" + s);
+
+                        Arbitrary<String> str1 = Combinators.combine(pass, number)
+                                .as((p, n) -> p + "" + n);
+
+                        Arbitrary<String> str2 = Combinators.combine(pass, number, special)
+                                .as((p, n, s) -> p + "" + n + "" + s);
+
+                        return Arbitraries.oneOf(passFail, str, str1, str2)
+                                .map(s -> Tuple.of(number_temp, special_temp, s));
+
+
+                    }
+
+                });
 
     }
 
 
     @Property
-    void nullPasswordAlwaysFails ()
-       {
-           PasswordValidator validator = new PasswordValidator(8, requiresNumber, requiresSpecialChar);
-           boolean isValid = validator.validate(null);
-           Assertions.assertThat(isValid).isFalse();
-       }
+    void nullPasswordAlwaysFails (
+            @ForAll boolean requiresNumber,
+            @ForAll boolean requiresSpecialChar
+    )
+    {
+        PasswordValidator validator = new PasswordValidator(MIN_LENGTH, requiresNumber, requiresSpecialChar);
+        boolean isValid = validator.validate(null);
+        Assertions.assertThat(isValid).isFalse();
+    }
+
+
+
 
 
 
 }
+

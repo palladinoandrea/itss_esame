@@ -17,6 +17,8 @@ import static org.junit.jupiter.params.provider.Arguments.of;
 public class PasswordValidatorTest {
 
     private static PasswordValidator passwordValidator;
+
+    int MIN_LENGTH = 8;
     String password;
 
 
@@ -26,17 +28,16 @@ public class PasswordValidatorTest {
 
     }
 
-    @BeforeEach
-    public void setUp() {
-        passwordValidator= new PasswordValidator(8, true,true);
-    }
 
     @ParameterizedTest
-    @ValueSource(strings = {"ciaomichiamonico", "Parabola1", "Mipiaceilcioccolato"})
+    @ValueSource(strings = {"ciaomichiamonico", "Parabola", "Mipiaceilcioccolato"})
     @DisplayName("Password Length Requirement Test")
     @Order(1)
     public void testPasswordLengthRequirement(String password) {
-        Assertions.assertTrue(password.length() >= 8 && password.length() <= 24);
+
+        passwordValidator = new PasswordValidator(MIN_LENGTH, false, false);
+
+        Assertions.assertTrue(passwordValidator.validate(password));
     }
 
     @ParameterizedTest
@@ -87,8 +88,6 @@ public class PasswordValidatorTest {
     }
 
 
-
-
     @ParameterizedTest
     @MethodSource("generator")
     @DisplayName("Caso white-box")
@@ -112,16 +111,19 @@ public class PasswordValidatorTest {
                 of("parabola", 6, true, false, false),
                 of("parabola1", 6, true, false,true),
                 of("parabola", 6, false, false, true),
-                of("parabola1", 6, false, false, false), //errore progettazione
+
+                of("parabola1", 6, false, false, false), //errore progettazione corretto
 
                 of("parabola", 6, false, true, false),
                 of("parabola@", 6, false, true,true),
                 of("parabola", 6, false, false, true),
-                of("parabola@", 6, false, false, false) //errore progettazione
+                of("parabola@", 6, false, false, false) //errore progettazione corretto
 
 
         );
     }
+
+
 
 
     @AfterAll
