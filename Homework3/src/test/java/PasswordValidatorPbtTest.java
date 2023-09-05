@@ -34,37 +34,21 @@ public class PasswordValidatorPbtTest {
         PasswordValidator validator = new PasswordValidator(MIN_LENGTH, requiresNum, requiresSpec);
         boolean isValid = validator.validate(str);
 
-<<<<<<< HEAD
 
         int p_length = str.length();
 
         String pass_lengt = p_length >  10 ? "|Lunghezza > 10| " : "|Lunghezza < 10| ";
         String pass_number = requiresNum ? "|Password con numero  | " : "|Password senza numero| ";
         String pass_special = requiresSpec ? "|Password con carattere speciale  | " : "|Password senza carattere speciale| ";
-=======
-        int plength = str.length();
-        int digit = 0;
->>>>>>> parent of 24a83cd (collection news)
 
-        for(int i = 0; i < plength; i++){
 
-            if(isDigit(str.charAt(i))){
-                digit++;
-            }
-        }
 
-<<<<<<< HEAD
         Statistics.label("Lunghezza").collect(pass_lengt);
         Statistics.label("Presenza del numero").collect(pass_number);
         Statistics.label("Presenza del carattere speciale").collect(pass_special);
 
         Statistics.label("Correlazioni lunghezza/numero/carattere speciale").collect(pass_lengt, pass_number, pass_special);
 
-=======
-        String lengt = plength >  10 ? "lunghezza < 10 " : "lunghezza > 10";
-        String digi = digit > 3 ? "Meno di 3 numeri" : "ALmeno 3 numeri";
-        Statistics.collect(lengt, digi);
->>>>>>> parent of 24a83cd (collection news)
 
         Assertions.assertThat(isValid).isTrue();
     }
